@@ -22,8 +22,14 @@ app.get('/',
   res.sendFile(__dirname + "/index.html");
 });
 
+app.get('/test', 
+(req, res) =>{
+  res.sendFile(__dirname + "/test.html");
+});
+
 io.on('connection', function(socket){
   socket.on('data', function(msg){
+    console.log("Got data:" + msg);
     socket.broadcast.emit('browser-data', msg);
   });
 });

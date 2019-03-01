@@ -15,20 +15,57 @@ Arduino ino:
 #include <Hash.h>
 
 
-
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
-int messageTimestamp = millis();
-int heartbeatTimestamp = millis();
+int messageTimestamp = 0;
+int heartbeatTimestamp = 0;
 
 #define SSID "SSID"
 #define PASS "PASS"
 
-#define HEARTBEAT_INTERVAL 200
+#define HEARTBEAT_INTERVAL 50
 #define MESSAGE_INTERVAL 100
+#define IP "MYIP"
+#define PORT 4444
 
 #define USE_SERIAL Serial1
+bool isConnected = false;
+
+void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
+
+
+    switch(type) {
+        case WStype_DISCONNECTED:
+            USE_SERIAL.printf("[WSc] Disconnected!\n");
+            isConnected = false;
+            break;
+        case WStype_CONNECTED:
+            {
+                USE_SERIAL.printf("[WSc] Connected to url: %s\n",  payload);
+                isConnected = true;
+
+          // send message to server when Connected
+                // socket.io upgrade confirmation message (required)
+        webSocket.sendTXT("5");
+            }
+            break;
+        case WStype_TEXT:
+            USE_SERIAL.printf("[WSc] get text: %s\n", payload);
+
+      // send message to server
+      // webSocket.sendTXT("message here");
+            break;
+        case WStype_BIN:
+            USE_SERIAL.printf("[WSc] get binary length: %u\n", length);
+            hexdump(payload, length);
+
+            // send data to server
+            // webSocket.sendBIN(payload, length);
+            break;
+    }
+
+}
 
 void setup() {
 
@@ -48,15 +85,15 @@ void setup() {
     }
 
     WiFiMulti.addAP(SSID, PASS);
-
+    webSocket.beginSocketIO(IP, PORT);
+    webSocket.onEvent(webSocketEvent);
 }
 
 void loop() {
   
     webSocket.loop();
-   
-    
-    if((WiFiMulti.run() == WL_CONNECTED)) {
+
+    if(isConnected) {
 
         uint64_t now = millis();
 
