@@ -1,5 +1,7 @@
 # nodejs-socketpage
 
+Example project to connect and visualize an ESP8266 board's pin state in a nodejs server.
+
 ## Arduino
 
 * Load zip to arduino: https://github.com/Links2004/arduinoWebSockets
